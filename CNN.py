@@ -34,13 +34,3 @@ class CNN(nn.Module):
         output = self.fc(cat)   # B, output dim
         
         return output
-
-model = CNN(
-    vocab_size=25000,
-    embed_dim=100,          # C
-    num_classes=2,          # output dim
-    kernel_sizes=[3, 4, 5],
-    num_filters=100
-)
-
-print(sum(p.numel() for p in model.parameters()))
