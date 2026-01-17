@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from datasets import load_dataset
 from dataset.custom_tk import Tokenizer
-from pandas import read_csv
+from pandas import read_csv, concat
 import plotly.express as px
 
 def dataset_text_length():
@@ -61,3 +61,42 @@ def train_plots(batch_size, embed_dim, num_filters):
         y_label="Score",
         file_name='Prec+Rec'
     )
+
+def plot_val_loss_curves(configs, title="Validation loss across configurations"):
+    dfs = []
+    for label, path in configs.items():
+        df = read_csv(path)
+        df = df[["epoch", "val_loss"]].copy()
+        df["config"] = label
+        dfs.append(df)
+
+    data = concat(dfs, ignore_index=True)
+
+    fig = px.line(
+        data,
+        x="epoch",
+        y="val_loss",
+        color="config",
+        markers=True,
+        title=title,
+        labels={
+            "epoch": "Epoch",
+            "val_loss": "Validation loss",
+            "config": "Configuration",
+        },
+    )
+
+    fig.update_layout(template="plotly_white")
+    fig.show()
+
+    return fig
+
+configs = {
+    "default (bs=512, emb=128, nf=100)": "metrics/b512_d128_f100.csv",
+    "batch=1024": "metrics/b1024_d128_f100.csv",
+    "emb_dim=256": "metrics/b512_d256_f100.csv",
+    "filters=200": "metrics/b512_d128_f200.csv",
+}
+
+fig = plot_val_loss_curves(configs)
+fig.write_image("plots/val_loss_comparison.png", width=900, height=500, scale=2)
